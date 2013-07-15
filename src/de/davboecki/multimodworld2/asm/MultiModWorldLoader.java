@@ -7,7 +7,7 @@ import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin.TransformerExclusions;
 
 @TransformerExclusions({"de.davboecki.multimodworld2.asm.MainClassTransformer"})
-public class MultiModWorldLoader implements IFMLLoadingPlugin, IFMLCallHook {
+public class MultiModWorldLoader implements IFMLLoadingPlugin {
 
 	@Override
 	@Deprecated
@@ -22,19 +22,14 @@ public class MultiModWorldLoader implements IFMLLoadingPlugin, IFMLCallHook {
 
 	@Override
 	public String getModContainerClass() {
-		return null; //TODO
+		return null;
 	}
 
 	@Override
 	public String getSetupClass() {
-		return null;//"de.davboecki.multimodworld2.asm.MultiModWorldLoader";
+		return null;
 	}
 
 	@Override
 	public void injectData(Map<String, Object> data) {}
-
-	@Override
-	public Void call() throws Exception {
-		return null;
-	}
 }
