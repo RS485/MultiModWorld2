@@ -1,7 +1,7 @@
-MultiModWorld2
-==============
-This is just an attempt to re create an Forge CoreMod version of the old CraftBUkkit MultiModWorld Mod/Plugin.
+MultiModWorld 2
+===============
+This is just an attempt to recreate a Minecraft Forge coremod version of the old CraftBukkit MultiModWorld Mod/Plugin.
 
 No promise that this will ever result in something functional.
 
-ALL RIGHTS RESERVERD (c)
+(c) All rights reserved.
