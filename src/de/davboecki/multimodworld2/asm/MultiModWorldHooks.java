@@ -1,11 +1,18 @@
 package de.davboecki.multimodworld2.asm;
+
 import java.util.Map;
 
+import de.davboecki.multimodworld2.asm.interfaces.ISetVanillaPacket;
+
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.NetLoginHandler;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.Packet1Login;
 import net.minecraft.network.packet.Packet250CustomPayload;
-
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
+import net.minecraft.world.storage.WorldInfo;
 
 public class MultiModWorldHooks {
 	
@@ -14,7 +21,7 @@ public class MultiModWorldHooks {
         	if(!((Packet250CustomPayload)packet).channel.startsWith("MC|")) return false;
     	}
     	if(packet instanceof Packet1Login) {
-    		((Packet1Login)packet).vanillaCompatible = true;
+    		((ISetVanillaPacket)packet).setVanillaPacket();
     	}
     	return true;
 	}
@@ -44,5 +51,22 @@ public class MultiModWorldHooks {
         netLoginHandler.completeConnection(null);
         loginStates.remove(netLoginHandler);
 		return false;
+	}
+	
+	public static boolean setBlock(int x, int y, int z, int id, int meta, World world, WorldInfo worldInfo) {
+		int dimension = world.provider.dimensionId;
+		String worldName = worldInfo.getWorldName();
+		return true;
+	}
+
+
+	public static boolean setBlockTileEntity(int x, int y, int z, TileEntity tile, World world, WorldInfo worldInfo) {
+		return true;
+	}
+
+
+	public static boolean spawnEntityInWorld(Entity entity, World world, WorldInfo worldInfo) {
+		if(entity instanceof EntityPlayer) return true;
+		return true;
 	}
 }
