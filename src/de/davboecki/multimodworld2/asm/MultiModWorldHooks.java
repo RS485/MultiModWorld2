@@ -1,18 +1,25 @@
 package de.davboecki.multimodworld2.asm;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-
-import de.davboecki.multimodworld2.asm.interfaces.ISetVanillaPacket;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.NetLoginHandler;
 import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.Packet10Flying;
+import net.minecraft.network.packet.Packet13PlayerLookMove;
 import net.minecraft.network.packet.Packet1Login;
 import net.minecraft.network.packet.Packet250CustomPayload;
+import net.minecraft.network.packet.Packet9Respawn;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import net.minecraft.world.storage.WorldInfo;
+import de.davboecki.multimodworld2.asm.interfaces.IMovingListener;
+import de.davboecki.multimodworld2.asm.interfaces.ISetVanillaPacket;
 
 public class MultiModWorldHooks {
 	
@@ -22,6 +29,14 @@ public class MultiModWorldHooks {
     	}
     	if(packet instanceof Packet1Login) {
     		((ISetVanillaPacket)packet).setVanillaPacket();
+    		if(((Packet1Login)packet).dimension == -10)  {
+    			((Packet1Login)packet).dimension = 0;
+    		}
+    	}
+    	if(packet instanceof Packet9Respawn) {
+    		if(((Packet9Respawn)packet).respawnDimension == -10)  {
+    			((Packet9Respawn)packet).respawnDimension = 0;
+    		}
     	}
     	return true;
 	}
@@ -68,5 +83,25 @@ public class MultiModWorldHooks {
 	public static boolean spawnEntityInWorld(Entity entity, World world, WorldInfo worldInfo) {
 		if(entity instanceof EntityPlayer) return true;
 		return true;
+	}
+
+	public static List<IMovingListener> movingListener = new LinkedList<IMovingListener>();
+
+	public static boolean handlePlayerMove(EntityPlayerMP playerEntity, Packet10Flying par1Packet10Flying, boolean hasMoved) {
+		if(!hasMoved) return false;
+		if(playerEntity.dimension != -10) return false;
+		if (par1Packet10Flying.moving && !(par1Packet10Flying.moving && par1Packet10Flying.yPosition == -999.0D && par1Packet10Flying.stance == -999.0D)) {
+			if(playerEntity.posX != par1Packet10Flying.xPosition || playerEntity.posY != par1Packet10Flying.yPosition || playerEntity.posZ != par1Packet10Flying.zPosition) {
+				boolean cancel = false;
+				for(IMovingListener listener:movingListener) {
+					cancel |= !listener.playerTryesToMoveTo(playerEntity, par1Packet10Flying.xPosition, par1Packet10Flying.yPosition, par1Packet10Flying.zPosition);
+				}
+				if(cancel) {
+					playerEntity.playerNetServerHandler.setPlayerLocation(playerEntity.posX, playerEntity.posY, playerEntity.posZ, playerEntity.rotationYaw, playerEntity.rotationPitch);
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }

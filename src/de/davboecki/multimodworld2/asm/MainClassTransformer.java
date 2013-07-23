@@ -40,6 +40,57 @@ public class MainClassTransformer implements IClassTransformer {
 					m.accept(newMethod);
 					node.methods.set(node.methods.indexOf(m), newMethod);
 				}
+				if(m.name.equals("handleFlying")) {
+					MethodNode newMethod = new MethodNode(m.access, m.name, m.desc, m.signature, m.exceptions.toArray(new String[]{})) {
+						private Boolean insertFirst = null;
+						private Label labelForNextLineNumber = null;
+
+						@Override
+						public void visitFieldInsn(int opcode, String owner, String name, String desc) {
+							super.visitFieldInsn(opcode, owner, name, desc);
+							if(opcode == Opcodes.PUTFIELD && name.equals("hasMoved") && owner.equals("net/minecraft/network/NetServerHandler") && desc.equals("Z")) {
+								if(insertFirst == null) {
+									insertFirst = true;
+								}
+							}
+						}
+
+						@Override
+						public void visitLabel(Label label) {
+							if(insertFirst != null && insertFirst) {
+								insertFirst = false;
+								super.visitLabel(label);
+								visitFrame(Opcodes.F_APPEND,1, new Object[] {"net/minecraft/world/WorldServer"}, 0, null);
+								visitVarInsn(Opcodes.ALOAD, 0);
+								visitFieldInsn(Opcodes.GETFIELD, "net/minecraft/network/NetServerHandler", "playerEntity", "Lnet/minecraft/entity/player/EntityPlayerMP;");
+								visitVarInsn(Opcodes.ALOAD, 1);
+								visitVarInsn(Opcodes.ALOAD, 0);
+								visitFieldInsn(Opcodes.GETFIELD, "net/minecraft/network/NetServerHandler", "hasMoved", "Z");
+								visitMethodInsn(Opcodes.INVOKESTATIC, "de/davboecki/multimodworld2/asm/MultiModWorldHooks", "handlePlayerMove", "(Lnet/minecraft/entity/player/EntityPlayerMP;Lnet/minecraft/network/packet/Packet10Flying;Z)Z");
+								Label l9 = new Label();
+								visitJumpInsn(Opcodes.IFEQ, l9);
+								visitInsn(Opcodes.RETURN);
+								super.visitLabel(l9);
+								labelForNextLineNumber = l9;
+							} else {
+								super.visitLabel(label);
+							}
+						}
+
+						@Override
+						public void visitLineNumber(int line, Label start) {
+							if(labelForNextLineNumber == null) {
+								super.visitLineNumber(line, start);
+							} else {
+								super.visitLineNumber(line, labelForNextLineNumber);
+								labelForNextLineNumber = null;
+							}
+						}
+						
+					};
+					m.accept(newMethod);
+					node.methods.set(node.methods.indexOf(m), newMethod);
+				}
 			}
 			ClassWriter writer = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
 			node.accept(writer);
